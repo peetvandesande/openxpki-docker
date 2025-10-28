@@ -76,7 +76,7 @@ services:
       server:
         condition: service_healthy
 
-  web: &web-apache
+  web: web-apache
     << : *base-image
     container_name: OpenXPKI_WebUI
     command: /usr/bin/start-webserver apache
@@ -98,7 +98,7 @@ services:
         condition: service_healthy
 
   web-nginx:
-    << : *web-apache
+    << : *base-image
     container_name: OpenXPKI_WebUI_nginx
     command: /usr/bin/start-webserver nginx
     volumes:
@@ -106,6 +106,14 @@ services:
       - ./openxpki-config/tls/:/etc/openxpki/tls/
       - openxpkiclientsocket:/run/openxpki-clientd
       - openxpkidownload:/var/www/download:ro
+    healthcheck:
+      test: wget -q http://localhost/healthcheck/ping
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      client:
+        condition: service_healthy
 
 volumes:
   openxpkidb:
